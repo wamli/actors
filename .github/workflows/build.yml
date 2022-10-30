@@ -1,0 +1,64 @@
+name: Build and test mlinference actors
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "actors/imagenetpostprocessor/**"
+      - "actors/imagenetpostprocessor/src/**"
+      - "actors/imagenetpostprocessor/Cargo.*"
+      - "actors/imagenetpreprocessor/**"
+      - "actors/imagenetpreprocessor/src/**"
+      - "actors/imagenetpreprocessor/Cargo.*"
+# env:
+#   working-directory: cicdactor
+jobs:
+#   build_and_test:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: Add wasm32-unknown-unknown
+#         run: rustup target add wasm32-unknown-unknown
+#       - name: Check formatting
+#         run: cargo fmt -- --check
+#         working-directory: actors/imagenetpostprocessor
+#         shell: bash
+#       - name: Build all actors
+#         run: make all
+#         working-directory: actors
+#       - name: Check lints with clippy
+#         run: |
+#           rustup component add clippy
+#           cargo clippy
+#         working-directory: actors/imagenetpostprocessor
+      # Once you've written unit tests for your actor, you can uncomment
+      # the two lines below to automatically run tests
+      # - name: Test actor
+      #   run: cargo test --target x86_64-unknown-linux-gnu -- --nocapture
+
+  
+  
+  # Using a matrix, build for 6 supported targets for wasmCloud providers
+  build_provider_targets:
+    strategy:
+      matrix:
+        target:
+          - imagenetpostprocessor
+          - imagenetpreprocessor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add wasm32-unknown-unknown
+        run: rustup target add wasm32-unknown-unknown
+      - name: Check formatting
+        run: cargo fmt -- --check
+        working-directory: actors/${{ matrix.target }}
+        shell: bash
+      - name: Build all actors
+        run: cargo build
+        working-directory: actors/${{ matrix.target }}
+      - name: Check lints with clippy
+        run: |
+          rustup component add clippy
+          cargo clippy
+        working-directory: actors/${{ matrix.target }}
+

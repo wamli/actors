@@ -1,0 +1,173 @@
+# Simply replace the text actors/first with the path to your actor in this repo, or `./` if you're in the root
+name: Release mlinference actors to GHCR
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "imagenetpostprocessor/src/**"
+      - "imagenetpostprocessor/Cargo.*"
+      - "imagenetpreprocessor/**"
+      - "imagenetpreprocessor/src/**"
+      - "imagenetpreprocessor/Cargo.*"
+      - "imagenetpostprocessor/**"
+    tags:
+      - "v*"
+env:
+  # For the release action, you'll have to set the following variables
+  WASH_ISSUER_KEY: ${{ secrets.WASH_ISSUER_KEY }}
+  WASH_SUBJECT_KEY: ${{ secrets.WASH_SUBJECT_KEY }}
+  WASMCLOUD_PAT: ${{ secrets.WASMCLOUD_PAT }}
+jobs:
+  build_signed_actor:
+    strategy:
+      matrix:
+        target:
+          - imagenetpostprocessor
+          - imagenetpreprocessor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: wasmcloud/common-actions/install-wash@main
+      - name: Add wasm32-unknown-unknown
+        run: rustup target add wasm32-unknown-unknown
+      # Once you've written unit tests for your actor, you can uncomment
+      # the two lines below to automatically run tests
+      # - name: Test actor
+      #   run: cargo test --target x86_64-unknown-linux-gnu -- --nocapture
+      - name: Build and sign wasmCloud actor
+        working-directory: ${{ matrix.target }}
+        env:
+          WASH_ISSUER_KEY: ${{ env.WASH_ISSUER_KEY }}
+          WASH_SUBJECT_KEY: ${{ env.WASH_SUBJECT_KEY }}
+        run: make
+      - name: Upload signed actor to GH Actions
+        uses: actions/upload-artifact@v2
+        with:
+          name: wasmcloud-actor
+          path: ${{ matrix.target }}/build/*.wasm
+
+  github_release:
+    # strategy:
+    #   matrix:
+    #     target:
+    #       - imagenetpostprocessor
+    #       #- imagenetpreprocessor
+    # Only run on tag push
+    #if: startswith(github.ref, 'refs/tags/') 
+    needs: build_signed_actor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: wasmcloud/common-actions/install-wash@main
+      - name: set lower case owner name
+        #https://github.com/orgs/community/discussions/27086
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
+      - name: Download signed actor imagenetpostprocessor
+        uses: actions/download-artifact@v2
+        with:
+          working-directory: imagenetpostprocessor
+          name: wasmcloud-actor
+          path: imagenetpostprocessor/build
+      - name: Show downloaded imagenetpostprocessor
+        working-directory: imagenetpostprocessor/build
+        run: |
+          var=$(ls *.wasm)
+          echo "These files are in 'imagenetpostprocessor/build': $var"
+          var=$(ls ..)
+          echo "These files are in /.. : $var"
+      - name: Download signed actor imagenetpreprocessor
+        uses: actions/download-artifact@v2
+        with:
+          working-directory: imagenetpreprocessor
+          name: wasmcloud-actor
+          path: imagenetpreprocessor/build
+      - name: Show downloaded imagenetpreprocessor
+        working-directory: imagenetpostprocessor/build
+        run: |
+          var=$(ls *.wasm)
+          echo "These files are in 'imagenetpostprocessor/build': $var"
+          var=$(ls ..)
+          echo "These files are in /.. : $var"
+      - name: Create release text for imagenetpostprocessor
+        working-directory: imagenetpostprocessor
+        run: |
+          export oci_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].version')
+          export claims=$(wash claims inspect build/imagenetpostprocessor_s.wasm)
+          echo "Your actor can be accessed at \`ghcr.io/${{ env.OWNER_LC }}/imagenetpostprocessor:$oci_version\`" >> ../release.txt
+          echo "Claims information:" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+          echo "$claims" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+      - name: copy imagenetpostprocessor
+        working-directory: .
+        run: |
+          cp imagenetpostprocessor/build/*.wasm .
+      - name: Create release text for imagenetpreprocessor
+        working-directory: imagenetpreprocessor
+        run: |
+          export oci_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].version')
+          export claims=$(wash claims inspect build/imagenetpreprocessor_s.wasm)
+          echo "Your actor can be accessed at \`ghcr.io/${{ env.OWNER_LC }}/imagenetpreprocessor:$oci_version\`" >> ../release.txt
+          echo "Claims information:" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+          echo "$claims" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+      - name: copy imagenetpreprocessor
+        working-directory: .
+        run: |
+          cp imagenetpreprocessor/build/*.wasm .
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./*.wasm
+          token: ${{ env.WASMCLOUD_PAT }}
+          body_path: release.txt
+          prerelease: false
+          draft: false
+
+  artifact_release:
+    strategy:
+      matrix:
+        target:
+          - imagenetpostprocessor
+          - imagenetpreprocessor
+    needs: build_signed_actor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: wasmcloud/common-actions/install-wash@main
+      - name: Download signed actor
+        uses: actions/download-artifact@v2
+        with:
+          name: wasmcloud-actor
+          path: build
+      - name: Determine actor name
+        working-directory: ${{ matrix.target }}
+        run: |
+          echo "actor-name=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name')" >> $GITHUB_ENV
+      - name: Determine actor version
+        working-directory: ${{ matrix.target }}
+        # Only run on tag push
+        if: startswith(github.ref, 'refs/tags/') 
+        run: |
+          echo "actor-version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].version')" >> $GITHUB_ENV
+      - name: Determine actor version (main)
+        if: ${{ !startswith(github.ref, 'refs/tags/') }}
+        run: |
+          echo "actor-version=latest" >> $GITHUB_ENV
+      - name: set lower case owner name
+        #https://github.com/orgs/community/discussions/27086
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
+      - name: Push actor to GHCR
+        env:
+          WASH_REG_USER: ${{ github.repository_owner }}
+          WASH_REG_PASSWORD: ${{ secrets.WASMCLOUD_PAT }}
+        run: |
+          wash reg push ghcr.io/${{ env.OWNER_LC }}/${{ matrix.target }}:${{ env.actor-version }} build/${{ matrix.target }}_s.wasm -a org.opencontainers.image.source=https://github.com/${{ env.OWNER_LC }}/${{ github.event.repository.name }} --allow-latest
