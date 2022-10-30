@@ -19,7 +19,7 @@ log = "0.4"
 ndarray = "0.15"
 wasmbus-rpc = "0.10"
 wasmcloud-interface-logging = "0.7"
-wasmcloud_interface_mlpreprocessing = { path="../../interfaces/mlpreprocessing/rust" }
+wasmcloud_interface_mlpreprocessing = { path="../interfaces/mlpreprocessing/rust" }
 
 [profile.release]
 # Optimize for small code size
