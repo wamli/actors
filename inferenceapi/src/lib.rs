@@ -11,7 +11,7 @@ use wasmcloud_interface_mlpreprocessing::{
 };
 
 const IMAGENET_PREPROCESS_ACTOR: &str = "mlinference/imagenetpreprocessor";
-const IMAGENET_PREPROCRGB8_ACTOR: &str = "mlinference/imagenetpreprocrgb8";
+const IMAGENET_PREPROCRGB8_ACTOR: &str = "mlinference/imagenetpreprocrgb";
 const IMAGENET_POSTPROCESS_ACTOR: &str = "mlinference/imagenetpostprocessor";
 
 const MNIST_PREPROCESS_ACTOR: &str = "mlinference/mnistpreprocessor";

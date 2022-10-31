@@ -7,16 +7,16 @@ on:
     paths:
       - "imagenetpostprocessor/src/**"
       - "imagenetpostprocessor/Cargo.*"
+      - "imagenetpostprocessor/**"
       - "imagenetpreprocessor/**"
       - "imagenetpreprocessor/src/**"
       - "imagenetpreprocessor/Cargo.*"
-      - "imagenetpostprocessor/**"
       - "inferenceapi/src/**"
       - "inferenceapi/Cargo.*"
       - "inferenceapi/**"
-      - "imagenetpreprocrgb8/src/**"
-      - "imagenetpreprocrgb8/Cargo.*"
-      - "imagenetpreprocrgb8/**"
+      - "imagenetpreprocrgb/src/**"
+      - "imagenetpreprocrgb/Cargo.*"
+      - "imagenetpreprocrgb/**"
       - "mnistpostprocessor/src/**"
       - "mnistpostprocessor/Cargo.*"
       - "mnistpostprocessor/**"
@@ -38,7 +38,7 @@ jobs:
           - imagenetpostprocessor
           - imagenetpreprocessor
           - inferenceapi
-          - imagenetpreprocrgb8
+          - imagenetpreprocrgb
           - mnistpostprocessor
           - mnistpreprocessor
     runs-on: ubuntu-latest
@@ -64,11 +64,6 @@ jobs:
           path: ${{ matrix.target }}/build/*.wasm
 
   github_release:
-    # strategy:
-    #   matrix:
-    #     target:
-    #       - imagenetpostprocessor
-    #       #- imagenetpreprocessor
     # Only run on tag push
     #if: startswith(github.ref, 'refs/tags/') 
     needs: build_signed_actor
@@ -102,10 +97,10 @@ jobs:
           name: wasmcloud-actor
           path: imagenetpreprocessor/build
       - name: Show downloaded imagenetpreprocessor
-        working-directory: imagenetpostprocessor/build
+        working-directory: imagenetpreprocessor/build
         run: |
           var=$(ls *.wasm)
-          echo "These files are in 'imagenetpostprocessor/build': $var"
+          echo "These files are in 'imagenetpreprocessor/build': $var"
           var=$(ls ..)
           echo "These files are in /.. : $var"
       - name: Download signed actor inferenceapi
@@ -114,12 +109,12 @@ jobs:
           working-directory: inferenceapi
           name: wasmcloud-actor
           path: inferenceapi/build
-      - name: Download signed actor imagenetpreprocrgb8
+      - name: Download signed actor imagenetpreprocrgb
         uses: actions/download-artifact@v2
         with:
-          working-directory: imagenetpreprocrgb8
+          working-directory: imagenetpreprocrgb
           name: wasmcloud-actor
-          path: imagenetpreprocrgb8/build
+          path: imagenetpreprocrgb/build
       - name: Download signed actor mnistpostprocessor
         uses: actions/download-artifact@v2
         with:
@@ -174,20 +169,20 @@ jobs:
         working-directory: .
         run: |
           cp inferenceapi/build/*.wasm .
-      - name: Create release text for imagenetpreprocrgb8
-        working-directory: imagenetpreprocrgb8
+      - name: Create release text for imagenetpreprocrgb
+        working-directory: imagenetpreprocrgb
         run: |
           export oci_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].version')
-          export claims=$(wash claims inspect build/imagenetpreprocrgb8_s.wasm)
-          echo "Your actor can be accessed at \`ghcr.io/${{ env.OWNER_LC }}/imagenetpreprocrgb8:$oci_version\`" >> ../release.txt
+          export claims=$(wash claims inspect build/imagenetpreprocrgb_s.wasm)
+          echo "Your actor can be accessed at \`ghcr.io/${{ env.OWNER_LC }}/imagenetpreprocrgb:$oci_version\`" >> ../release.txt
           echo "Claims information:" >> ../release.txt
           echo "\`\`\`" >> ../release.txt
           echo "$claims" >> ../release.txt
           echo "\`\`\`" >> ../release.txt
-      - name: copy imagenetpreprocrgb8
+      - name: copy imagenetpreprocrgb
         working-directory: .
         run: |
-          cp imagenetpreprocrgb8/build/*.wasm .
+          cp imagenetpreprocrgb/build/*.wasm .
       - name: Create release text for mnistpostprocessor
         working-directory: mnistpostprocessor
         run: |
@@ -232,7 +227,7 @@ jobs:
           - imagenetpostprocessor
           - imagenetpreprocessor
           - inferenceapi
-          - imagenetpreprocrgb8
+          - imagenetpreprocrgb
           - mnistpostprocessor
           - mnistpreprocessor
     needs: build_signed_actor
