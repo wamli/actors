@@ -65,7 +65,7 @@ jobs:
 
   github_release:
     # Only run on tag push
-    #if: startswith(github.ref, 'refs/tags/') 
+    if: startswith(github.ref, 'refs/tags/') 
     needs: build_signed_actor
     runs-on: ubuntu-latest
     steps:
