@@ -11,6 +11,18 @@ on:
       - "imagenetpreprocessor/src/**"
       - "imagenetpreprocessor/Cargo.*"
       - "imagenetpostprocessor/**"
+      - "inferenceapi/src/**"
+      - "inferenceapi/Cargo.*"
+      - "inferenceapi/**"
+      - "imagenetpreprocrgb8/src/**"
+      - "imagenetpreprocrgb8/Cargo.*"
+      - "imagenetpreprocrgb8/**"
+      - "mnistpostprocessor/src/**"
+      - "mnistpostprocessor/Cargo.*"
+      - "mnistpostprocessor/**"
+      - "mnistpreprocessor/src/**"
+      - "mnistpreprocessor/Cargo.*"
+      - "mnistpreprocessor/**"
     tags:
       - "v*"
 env:
@@ -25,6 +37,10 @@ jobs:
         target:
           - imagenetpostprocessor
           - imagenetpreprocessor
+          - inferenceapi
+          - imagenetpreprocrgb8
+          - mnistpostprocessor
+          - mnistpreprocessor
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -92,6 +108,30 @@ jobs:
           echo "These files are in 'imagenetpostprocessor/build': $var"
           var=$(ls ..)
           echo "These files are in /.. : $var"
+      - name: Download signed actor inferenceapi
+        uses: actions/download-artifact@v2
+        with:
+          working-directory: inferenceapi
+          name: wasmcloud-actor
+          path: inferenceapi/build
+      - name: Download signed actor imagenetpreprocrgb8
+        uses: actions/download-artifact@v2
+        with:
+          working-directory: imagenetpreprocrgb8
+          name: wasmcloud-actor
+          path: imagenetpreprocrgb8/build
+      - name: Download signed actor mnistpostprocessor
+        uses: actions/download-artifact@v2
+        with:
+          working-directory: mnistpostprocessor
+          name: wasmcloud-actor
+          path: mnistpostprocessor/build
+      - name: Download signed actor mnistpreprocessor
+        uses: actions/download-artifact@v2
+        with:
+          working-directory: mnistpreprocessor
+          name: wasmcloud-actor
+          path: mnistpreprocessor/build
       - name: Create release text for imagenetpostprocessor
         working-directory: imagenetpostprocessor
         run: |
@@ -120,6 +160,62 @@ jobs:
         working-directory: .
         run: |
           cp imagenetpreprocessor/build/*.wasm .
+      - name: Create release text for inferenceapi
+        working-directory: inferenceapi
+        run: |
+          export oci_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].version')
+          export claims=$(wash claims inspect build/inferenceapi_s.wasm)
+          echo "Your actor can be accessed at \`ghcr.io/${{ env.OWNER_LC }}/inferenceapi:$oci_version\`" >> ../release.txt
+          echo "Claims information:" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+          echo "$claims" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+      - name: copy inferenceapi
+        working-directory: .
+        run: |
+          cp inferenceapi/build/*.wasm .
+      - name: Create release text for imagenetpreprocrgb8
+        working-directory: imagenetpreprocrgb8
+        run: |
+          export oci_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].version')
+          export claims=$(wash claims inspect build/imagenetpreprocrgb8_s.wasm)
+          echo "Your actor can be accessed at \`ghcr.io/${{ env.OWNER_LC }}/imagenetpreprocrgb8:$oci_version\`" >> ../release.txt
+          echo "Claims information:" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+          echo "$claims" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+      - name: copy imagenetpreprocrgb8
+        working-directory: .
+        run: |
+          cp imagenetpreprocrgb8/build/*.wasm .
+      - name: Create release text for mnistpostprocessor
+        working-directory: mnistpostprocessor
+        run: |
+          export oci_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].version')
+          export claims=$(wash claims inspect build/mnistpostprocessor_s.wasm)
+          echo "Your actor can be accessed at \`ghcr.io/${{ env.OWNER_LC }}/mnistpostprocessor:$oci_version\`" >> ../release.txt
+          echo "Claims information:" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+          echo "$claims" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+      - name: copy mnistpostprocessor
+        working-directory: .
+        run: |
+          cp mnistpostprocessor/build/*.wasm .
+      - name: Create release text for mnistpreprocessor
+        working-directory: mnistpreprocessor
+        run: |
+          export oci_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].version')
+          export claims=$(wash claims inspect build/mnistpreprocessor_s.wasm)
+          echo "Your actor can be accessed at \`ghcr.io/${{ env.OWNER_LC }}/mnistpreprocessor:$oci_version\`" >> ../release.txt
+          echo "Claims information:" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+          echo "$claims" >> ../release.txt
+          echo "\`\`\`" >> ../release.txt
+      - name: copy mnistpreprocessor
+        working-directory: .
+        run: |
+          cp mnistpreprocessor/build/*.wasm .
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
@@ -135,6 +231,10 @@ jobs:
         target:
           - imagenetpostprocessor
           - imagenetpreprocessor
+          - inferenceapi
+          - imagenetpreprocrgb8
+          - mnistpostprocessor
+          - mnistpreprocessor
     needs: build_signed_actor
     runs-on: ubuntu-latest
     steps:
