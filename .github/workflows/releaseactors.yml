@@ -67,17 +67,17 @@ jobs:
         with:
           name: wasmcloud-actor
           path: mnistpreprocessor/build/*.wasm
-      - name: Build and sign wasmCloud actor mnistpostrocessor
-        working-directory: mnistpostrocessor
+      - name: Build and sign wasmCloud actor mnistpostprocessor
+        working-directory: mnistpostprocessor
         env:
           WASH_ISSUER_KEY: ${{ env.WASH_ISSUER_KEY }}
           WASH_SUBJECT_KEY: ${{ env.WASH_MNIST_POST_PROCESSOR_SUBJECT_KEY }}
         run: make
-      - name: Upload signed actor mnistpostrocessor to GH Actions
+      - name: Upload signed actor mnistpostprocessor to GH Actions
         uses: actions/upload-artifact@v2
         with:
           name: wasmcloud-actor
-          path: mnistpostrocessor/build/*.wasm
+          path: mnistpostprocessor/build/*.wasm
       - name: Build and sign wasmCloud actor imagenetpreprocessor
         working-directory: imagenetpreprocessor
         env:
