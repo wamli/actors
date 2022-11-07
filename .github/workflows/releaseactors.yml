@@ -37,28 +37,15 @@ env:
   WASMCLOUD_PAT: ${{ secrets.WASMCLOUD_PAT }}
 jobs:
   build_signed_actor:
-    strategy:
-      matrix:
-        target:
-          - imagenetpostprocessor
-          - imagenetpreprocessor
-          - inferenceapi
-          - imagenetpreprocrgb
-          - mnistpostprocessor
-          - mnistpreprocessor
-        include:
-          - target: imagenetpreprocessor
-            WASH_SUBJECT_KEY: WASH_IMAGENET_PRE_PROCESSOR_SUBJECT_KEY
-          - target: imagenetpostprocessor
-            WASH_SUBJECT_KEY: ${{ env.WASH_IMAGENET_POST_PROCESSOR_SUBJECT_KEY }}
-          - target: mnistpreprocessor
-            WASH_SUBJECT_KEY: ${{ env.WASH_MNIST_PRE_PROCESSOR_SUBJECT_KEY }}
-          - target: mnistpostprocessor
-            WASH_SUBJECT_KEY: ${{ env.WASH_MNIST_POST_PROCESSOR_SUBJECT_KEY }}
-          - target: inferenceapi
-            WASH_SUBJECT_KEY: ${{ env.WASH_INFERENCEAPI_SUBJECT_KEY }}
-          - target: imagenetpreprocrgb
-            WASH_SUBJECT_KEY: ${{ env.WASH_IMAGENET_PRE_PROC_RGB_SUBJECT_KEY }}
+    # strategy:
+    #   matrix:
+    #     target:
+    #       - imagenetpostprocessor
+    #       - imagenetpreprocessor
+    #       - inferenceapi
+    #       - imagenetpreprocrgb
+    #       - mnistpostprocessor
+    #       - mnistpreprocessor
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -69,17 +56,72 @@ jobs:
       # the two lines below to automatically run tests
       # - name: Test actor
       #   run: cargo test --target x86_64-unknown-linux-gnu -- --nocapture
-      - name: Build and sign wasmCloud actor
-        working-directory: ${{ matrix.target }}
+      - name: Build and sign wasmCloud actor mnistpreprocessor
+        working-directory: mnistpreprocessor
         env:
           WASH_ISSUER_KEY: ${{ env.WASH_ISSUER_KEY }}
-          WASH_SUBJECT_KEY: ${{ matrix.WASH_SUBJECT_KEY }}
+          WASH_SUBJECT_KEY: ${{ env.WASH_MNIST_PRE_PROCESSOR_SUBJECT_KEY }}
         run: make
-      - name: Upload signed actor to GH Actions
+      - name: Upload signed actor mnistpreprocessor to GH Actions
         uses: actions/upload-artifact@v2
         with:
           name: wasmcloud-actor
-          path: ${{ matrix.target }}/build/*.wasm
+          path: mnistpreprocessor/build/*.wasm
+      - name: Build and sign wasmCloud actor mnistpostrocessor
+        working-directory: mnistpostrocessor
+        env:
+          WASH_ISSUER_KEY: ${{ env.WASH_ISSUER_KEY }}
+          WASH_SUBJECT_KEY: ${{ env.WASH_MNIST_POST_PROCESSOR_SUBJECT_KEY }}
+        run: make
+      - name: Upload signed actor mnistpostrocessor to GH Actions
+        uses: actions/upload-artifact@v2
+        with:
+          name: wasmcloud-actor
+          path: mnistpostrocessor/build/*.wasm
+      - name: Build and sign wasmCloud actor imagenetpreprocessor
+        working-directory: imagenetpreprocessor
+        env:
+          WASH_ISSUER_KEY: ${{ env.WASH_ISSUER_KEY }}
+          WASH_SUBJECT_KEY: ${{ env.WASH_IMAGENET_PRE_PROCESSOR_SUBJECT_KEY }}
+        run: make
+      - name: Upload signed actor imagenetpreprocessor to GH Actions
+        uses: actions/upload-artifact@v2
+        with:
+          name: wasmcloud-actor
+          path: imagenetpreprocessor/build/*.wasm
+      - name: Build and sign wasmCloud actor imagenetpostprocessor
+        working-directory: imagenetpostprocessor
+        env:
+          WASH_ISSUER_KEY: ${{ env.WASH_ISSUER_KEY }}
+          WASH_SUBJECT_KEY: ${{ env.WASH_IMAGENET_POST_PROCESSOR_SUBJECT_KEY }}
+        run: make
+      - name: Upload signed actor imagenetpostprocessor to GH Actions
+        uses: actions/upload-artifact@v2
+        with:
+          name: wasmcloud-actor
+          path: imagenetpostprocessor/build/*.wasm
+      - name: Build and sign wasmCloud actor inferenceapi
+        working-directory: inferenceapi
+        env:
+          WASH_ISSUER_KEY: ${{ env.WASH_ISSUER_KEY }}
+          WASH_SUBJECT_KEY: ${{ env.WASH_INFERENCEAPI_SUBJECT_KEY }}
+        run: make
+      - name: Upload signed actor inferenceapi to GH Actions
+        uses: actions/upload-artifact@v2
+        with:
+          name: wasmcloud-actor
+          path: inferenceapi/build/*.wasm
+      - name: Build and sign wasmCloud actor imagenetpreprocrgb
+        working-directory: imagenetpreprocrgb
+        env:
+          WASH_ISSUER_KEY: ${{ env.WASH_ISSUER_KEY }}
+          WASH_SUBJECT_KEY: ${{ env.WASH_IMAGENET_PRE_PROC_RGB_SUBJECT_KEY }}
+        run: make
+      - name: Upload signed actor imagenetpreprocrgb to GH Actions
+        uses: actions/upload-artifact@v2
+        with:
+          name: wasmcloud-actor
+          path: imagenetpreprocrgb/build/*.wasm
 
   github_release:
     # Only run on tag push
