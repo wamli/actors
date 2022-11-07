@@ -28,7 +28,12 @@ on:
 env:
   # For the release action, you'll have to set the following variables
   WASH_ISSUER_KEY: ${{ secrets.WASH_ISSUER_KEY }}
-  WASH_SUBJECT_KEY: ${{ secrets.WASH_SUBJECT_KEY }}
+  WASH_IMAGENET_PRE_PROCESSOR_SUBJECT_KEY: ${{ secrets.WASH_IMAGENET_PRE_PROCESSOR_SUBJECT_KEY }}
+  WASH_IMAGENET_POST_PROCESSOR_SUBJECT_KEY: ${{ secrets.WASH_IMAGENET_POST_PROCESSOR_SUBJECT_KEY }}
+  WASH_MNIST_PRE_PROCESSOR_SUBJECT_KEY: ${{ secrets.WASH_MNIST_PRE_PROCESSOR_SUBJECT_KEY }}
+  WASH_MNIST_POST_PROCESSOR_SUBJECT_KEY: ${{ secrets.WASH_MNIST_POST_PROCESSOR_SUBJECT_KEY }}
+  WASH_INFERENCEAPI_SUBJECT_KEY: ${{ secrets.WASH_INFERENCEAPI_SUBJECT_KEY }}
+  WASH_IMAGENET_PRE_PROC_RGB_SUBJECT_KEY: ${{ secrets.WASH_IMAGENET_PRE_PROC_RGB_SUBJECT_KEY }}
   WASMCLOUD_PAT: ${{ secrets.WASMCLOUD_PAT }}
 jobs:
   build_signed_actor:
@@ -41,6 +46,19 @@ jobs:
           - imagenetpreprocrgb
           - mnistpostprocessor
           - mnistpreprocessor
+        include:
+          - target: imagenetpreprocessor
+            WASH_SUBJECT_KEY: ${{ secrets.WASH_IMAGENET_PRE_PROCESSOR_SUBJECT_KEY }}
+          - target: imagenetpostprocessor
+            WASH_SUBJECT_KEY: ${{ secrets.WASH_IMAGENET_POST_PROCESSOR_SUBJECT_KEY }}
+          - target: mnistpreprocessor
+            WASH_SUBJECT_KEY: ${{ secrets.WASH_MNIST_PRE_PROCESSOR_SUBJECT_KEY }}
+          - target: mnistpostprocessor
+            WASH_SUBJECT_KEY: ${{ secrets.WASH_MNIST_POST_PROCESSOR_SUBJECT_KEY }}
+          - target: inferenceapi
+            WASH_SUBJECT_KEY: ${{ secrets.WASH_INFERENCEAPI_SUBJECT_KEY }}
+          - target: imagenetpreprocrgb
+            WASH_SUBJECT_KEY: ${{ secrets.WASH_IMAGENET_PRE_PROC_RGB_SUBJECT_KEY }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -55,7 +73,7 @@ jobs:
         working-directory: ${{ matrix.target }}
         env:
           WASH_ISSUER_KEY: ${{ env.WASH_ISSUER_KEY }}
-          WASH_SUBJECT_KEY: ${{ env.WASH_SUBJECT_KEY }}
+          WASH_SUBJECT_KEY: ${{ matrix.WASH_SUBJECT_KEY }}
         run: make
       - name: Upload signed actor to GH Actions
         uses: actions/upload-artifact@v2
