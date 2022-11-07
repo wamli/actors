@@ -48,17 +48,17 @@ jobs:
           - mnistpreprocessor
         include:
           - target: imagenetpreprocessor
-            WASH_SUBJECT_KEY: ${{ secrets.WASH_IMAGENET_PRE_PROCESSOR_SUBJECT_KEY }}
+            WASH_SUBJECT_KEY: ${{ env.WASH_IMAGENET_PRE_PROCESSOR_SUBJECT_KEY }}
           - target: imagenetpostprocessor
-            WASH_SUBJECT_KEY: ${{ secrets.WASH_IMAGENET_POST_PROCESSOR_SUBJECT_KEY }}
+            WASH_SUBJECT_KEY: ${{ env.WASH_IMAGENET_POST_PROCESSOR_SUBJECT_KEY }}
           - target: mnistpreprocessor
-            WASH_SUBJECT_KEY: ${{ secrets.WASH_MNIST_PRE_PROCESSOR_SUBJECT_KEY }}
+            WASH_SUBJECT_KEY: ${{ env.WASH_MNIST_PRE_PROCESSOR_SUBJECT_KEY }}
           - target: mnistpostprocessor
-            WASH_SUBJECT_KEY: ${{ secrets.WASH_MNIST_POST_PROCESSOR_SUBJECT_KEY }}
+            WASH_SUBJECT_KEY: ${{ env.WASH_MNIST_POST_PROCESSOR_SUBJECT_KEY }}
           - target: inferenceapi
-            WASH_SUBJECT_KEY: ${{ secrets.WASH_INFERENCEAPI_SUBJECT_KEY }}
+            WASH_SUBJECT_KEY: ${{ env.WASH_INFERENCEAPI_SUBJECT_KEY }}
           - target: imagenetpreprocrgb
-            WASH_SUBJECT_KEY: ${{ secrets.WASH_IMAGENET_PRE_PROC_RGB_SUBJECT_KEY }}
+            WASH_SUBJECT_KEY: ${{ env.WASH_IMAGENET_PRE_PROC_RGB_SUBJECT_KEY }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
