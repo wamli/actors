@@ -48,7 +48,7 @@ jobs:
           - mnistpreprocessor
         include:
           - target: imagenetpreprocessor
-            WASH_SUBJECT_KEY: ${{ WASH_IMAGENET_PRE_PROCESSOR_SUBJECT_KEY }}
+            WASH_SUBJECT_KEY: WASH_IMAGENET_PRE_PROCESSOR_SUBJECT_KEY
           - target: imagenetpostprocessor
             WASH_SUBJECT_KEY: ${{ env.WASH_IMAGENET_POST_PROCESSOR_SUBJECT_KEY }}
           - target: mnistpreprocessor
