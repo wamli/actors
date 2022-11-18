@@ -2,5 +2,5 @@
 
 subdirs = $(wildcard */)
 
-include build/makefiles/common.mk
+include makefiles/common.mk
 
